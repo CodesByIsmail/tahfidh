@@ -9,8 +9,7 @@ const session = {
   start: false,
   end: false,
   quizDuration: 0,
-  questions: [],
-  options: [],
+  questions: [{ q: "", opt: "" }],
   correctAnswers: [],
   userAnswers: [],
   ansGottenCorrectly: [],
@@ -46,7 +45,7 @@ let numOfQuestionsSelected;
 
 async function getQuranFromAPI(indexOfSurah) {
   try {
-    renderSpimner(questionOptions);
+    renderSpimner(questionOptionsContainer);
     let res = await fetch(
       `https://api.qurani.ai/gw/qh/v1/surah/${indexOfSurah}/quran-uthmani?limit=2000&offset=0`,
     );
@@ -100,20 +99,26 @@ function setRandomQuestions(numOfQues) {
   shuffleArray(possibleQuestions);
   // 4. slice from the ayah array, beginning from 0 and stopping at the number of possible questions
   questiions = possibleQuestions.slice(0, actualNumOfQues);
+  console.log(questiions);
 
-  session.questions = questiions;
+  questiions.forEach((q, i) => {
+    session.questions[i] = { q: q };
+  });
 
   session.questions.forEach((ques, i) => {
-    getCorrectAnswer(ques);
+    getCorrectAnswer(ques.q, i);
     setOptions(i);
   });
 
   session.totalQuestionsNum = session.questions.length;
 } //what this function does is that: it get random questions and stores it inside the session.questions array
 
-function getCorrectAnswer(curAyah) {
-  const indexOfAnswer = app.ayahs.indexOf(curAyah) + 1;
+function getCorrectAnswer(ques, index) {
+  console.log(ques, index)
+  const indexOfAnswer = app.ayahs.indexOf(ques) + 1;
   let correctAnswer = app.ayahs[indexOfAnswer];
+  session.questions[index].ans = indexOfAnswer;
+
   session.correctAnswers.push(correctAnswer);
 }
 
@@ -121,7 +126,7 @@ const MAX_OPT_NUM = 4;
 
 function setOptions(quesNum) {
   let options = [];
-  const curQues = session.questions[quesNum];
+  const curQues = session.questions[quesNum].q;
   const curAns = session.correctAnswers[quesNum];
 
   let i = 0;
@@ -135,42 +140,41 @@ function setOptions(quesNum) {
 
   options = [curAns, ...options];
   shuffleArray(options);
-  // session.options[quesNum].push(options)
-  session.options[quesNum] = options;
+  session.questions[quesNum].opt = options;
 }
 
 const quesTion = document.querySelector(".ques__ayah");
 
 function renderQuestion(curQuesNum) {
   if (!session.questions[curQuesNum]) return;
-  let curQues = session.questions[curQuesNum];
+  let curQues = session.questions[curQuesNum].q;
   quesTion.innerHTML = curQues;
 }
 
-const questionOptions = document.querySelector(".options");
+const questionOptionsContainer = document.querySelector(".options");
 
-questionOptions.addEventListener("click", (e) => {
+questionOptionsContainer.addEventListener("click", (e) => {
   if (e.target.classList.contains("option__div") || e.target.matches("span")) {
     getUserAnswer(e);
   }
 });
 
 function renderOptions(curQuesNum, optionText = ["A", "B", "C", "D"]) {
-  if (!session.options[curQuesNum]) return;
-  let curQuesOpts = session.options[curQuesNum];
+  if (!session.questions[curQuesNum]) return;
+  let curQuesOpts = session.questions[curQuesNum].opt;
   curQuesOpts.forEach((opt, i) => {
     if (!opt) return;
     const optionDiv = document.createElement("div");
     optionDiv.className = "option__div";
     optionDiv.innerHTML = `
    <span>${curQuesOpts[i]}</span>`;
-    questionOptions.append(optionDiv);
+    questionOptionsContainer.append(optionDiv);
   });
 }
 
 function render(curQuesNum) {
   totalQuestionNum.innerHTML = session.questions.length;
-  questionOptions.innerHTML = "";
+  questionOptionsContainer.innerHTML = "";
   renderQuestion(curQuesNum);
   renderOptions(curQuesNum);
 }
@@ -286,7 +290,7 @@ function PrevQuestion() {
   if (CurNum === 2) prevBtn.classList.add("btn__disabled");
   nextBtn.classList.remove("btn__disabled");
   CurNum--;
-  questionOptions.innerHTML = "";
+  questionOptionsContainer.innerHTML = "";
 
   updateProgress(CurNum);
   render(CurNum - 1);
@@ -311,7 +315,7 @@ function NextQuestion() {
   CurNum++;
   prevBtn.classList.remove("btn__disabled");
   updateProgress(CurNum);
-  questionOptions.innerHTML = "";
+  questionOptionsContainer.innerHTML = "";
   render(CurNum - 1);
   displayNavBtn();
   storeDataToLocalStorage();
@@ -325,7 +329,7 @@ function NextQuestion() {
 }
 
 function addIndicatorToAnswerdQues(answer) {
-  questionOptions.childNodes.forEach((opt) => {
+  questionOptionsContainer.childNodes.forEach((opt) => {
     if (opt.querySelector("span").innerHTML === answer) {
       addCorrectIndicator(opt);
     }
@@ -506,7 +510,7 @@ function addQuestionReview(questions) {
             </svg>              </div>
               
               <div class="review__wrapper hidden">
-                <p>Q: <span class="question">${session.questions[i]}</span> </p>
+                <p>Q: <span class="question">${session.questions[i].q}</span> </p>
                 <p>A: <span class="answer">${session.correctAnswers[i]}</span></p> 
                 <p>Your Answer: <span class="question">${!session.userAnswers[i] ? "No answer picked" : session.userAnswers[i]}</span> </p>
             </div>
@@ -520,13 +524,12 @@ function addQuestionReview(questions) {
 questionReviewContainer.addEventListener("click", (e) => {
   if (!e.target.closest(".question__review")) return;
 
-
   e.target
     .closest(".question__review")
     .querySelector(".review__wrapper")
     .classList.toggle("hidden");
 
-     e.target
+  e.target
     .closest(".question__review")
     .querySelector(".chevron")
     .classList.toggle("rotate__chevron");

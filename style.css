@@ -45,6 +45,15 @@
   --gradient: linear-gradient(to left, var(--green-900), var(--green-600));
 }
 
+@font-face {
+  font-family: "hafssmart8";
+  src:
+    url("https://cdn.jsdelivr.net/gh/thetruetruth/quran-data-kfgqpc@main/hafs-smart/font/hafssmart.8.woff2")
+      format("woff2"),
+    url("https://cdn.jsdelivr.net/gh/thetruetruth/quran-data-kfgqpc@main/hafs-smart/font/hafssmart.8.ttf")
+      format("truetype");
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -314,7 +323,9 @@ width: 20rem;
   color: var(--green-900);
   padding: 0.8rem;
   border-radius: var(--radius-md);
-  font-family: "Alyamama", serif;
+  /* font-family: "Alyamama", serif; */
+  font-family: hafssmart8;
+word-spacing: .1rem;
   background: var(--green-100);
 }
 
@@ -324,7 +335,9 @@ width: 20rem;
   gap: 1rem;
   width: 100%;
 
-  font-family: var(--font-arabic);
+  /* font-family: var(--font-arabic); */
+    font-family: hafssmart8;
+
 }
 
 .options .option__div {
@@ -499,11 +512,11 @@ box-shadow: var(--shadow-lg); */
   }
 }
 
-.quiz__summary.poor__background{
+.quiz__summary.poor__background {
   background: var(--red-50);
 }
 
-.quiz__summary.fair__background{
+.quiz__summary.fair__background {
   background: var(--gold-300);
 }
 
@@ -652,7 +665,8 @@ box-shadow: var(--shadow-lg); */
 .user__answer,
 .question,
 .answer {
-  font-family: var(--font-arabic);
+  /* font-family: var(--font-arabic); */
+  font-family: hafssmart8;
 }
 
 .review__wrapper {
@@ -673,12 +687,11 @@ box-shadow: var(--shadow-lg); */
   animation: rotate 1s infinite linear;
 }
 
-.chevron{
-  transition: .7s;
+.chevron {
+  transition: 0.7s;
 }
 
-.rotate__chevron{
-  
+.rotate__chevron {
   transform: rotate(0.5turn);
 }
 
