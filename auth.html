@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+  <link rel="stylesheet" href="style.css">
+      <script src="
+https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.4/dist/umd/supabase.min.js
+"></script> 
+  
+   <script src="./js/general.js" defer></script>
+  <script src="./js/auth.js" defer></script>
+</head>
+
+<body>
+
+
+  <style type="text/css" media="all">
+    body{
+      
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+  </style>
+  
+  <div class="auth__page">
+            <h1 class="logo">
+          <span class="logo__icon"><i class="uil uil-book-open"></i></span
+          >Tahfidh
+        </h1>
+    <p class="general__error"></p>
+    <div class="auth__type">
+      <h3 data-tab="login" class="active">Login</h3>
+      <h3 data-tab="signup" >Sign Up</h3>
+    </div>
+    
+    <form class="auth__form" action="" method="get" accept-charset="utf-8">
+
+<div class="input__div">
+        <label for="">
+        Email:
+      </label>
+      <input type="email" name="email" id="email" value="" />
+        <p class="error_message"></p>
+</div>
+      
+<div class="input__div">
+  <label for="">
+    Password:
+  </label>
+<div class="password__input">
+    <input type="password" name="password" id="password" value="" />
+<span><svg width="14" height="14"><use href="/images/icons.svg#icon-eye-off"></use></svg>
+    </span>
+</div>
+  <p class="error_message"></p>
+</div>
+      
+      <button type="submit">Login</button>
+      
+          <p class="ask__authType">Don't have an account? <a data-tab="signup" class="change__tab" href="">Sign Up</a></p>
+      
+    </form>
+
+  </div>
+</body>
+
+</html>

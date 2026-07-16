@@ -21,7 +21,13 @@
       rel="stylesheet"
       href="https://unicons.iconscout.com/release/v4.2.0/css/line.css"
     />
-    <script defer src="script.js"></script>
+    
+     <script src="
+https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.4/dist/umd/supabase.min.js
+"></script>
+
+       <script src="./js/general.js" defer></script>
+    <script defer src="/js/script.js"></script>
   </head>
 
   <body>
@@ -31,10 +37,21 @@
           <span class="logo__icon"><i class="uil uil-book-open"></i></span
           >Tahfidh
         </h1>
+        
+<h4 class="authenticate login"><a class="auth__btn" href="auth.html">Login / SignUp</a>    
+<svg width="18" height="18">
+                <use href="/images/icons.svg#icon-login"></use>
+              </svg></h4>
+              
+<!--               <h4 class="authenticate logout hidden"><a class="auth__btn" href="auth.html">Logout</a>    
+<svg width="18" height="18">
+  <use href="/images/icons.svg#icon-logout"></use>
+</svg></h4> -->
       </div>
     </nav>
 
     <main class="wrapper">
+
       <sectiion class="start__page">
         <div class="start__page__container">
           <p class="error__text hidden"></p>
@@ -45,6 +62,7 @@
                 <use href="/images/icons.svg#icon-book-open"></use>
               </svg>
             </span>
+
             <h1>Quran Quiz</h1>
             <p>Test your Quran Hifdh</p>
           </div>

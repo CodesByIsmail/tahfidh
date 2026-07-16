@@ -283,6 +283,8 @@ function submitQuiz() {
   calcResult();
   updateResultPageBrief();
   addQuestionReview(session.correctAnswers);
+  
+  
 }
 
 function PrevQuestion() {
@@ -318,7 +320,8 @@ function NextQuestion() {
   questionOptionsContainer.innerHTML = "";
   render(CurNum - 1);
   displayNavBtn();
-  storeDataToLocalStorage();
+  storeDataToLocalStorage('curSession', session);
+  storeDataToLocalStorage('appData', app);
   // }
 
   const alreadyPickedAnswer = session.userAnswers[CurNum - 1];
@@ -334,15 +337,6 @@ function addIndicatorToAnswerdQues(answer) {
       addCorrectIndicator(opt);
     }
   });
-}
-
-function storeDataToLocalStorage() {
-  localStorage.setItem("curSession", JSON.stringify(session));
-  localStorage.setItem("appInfo", JSON.stringify(app));
-}
-
-function getDataFromLocalStorage() {
-  return JSON.parse(localStorage.getItem("appInfo"));
 }
 
 function addCorrectIndicator(answerPickedByUser) {
@@ -384,6 +378,14 @@ const quizBriefQuesNum = document.querySelector(".quiz__brief__questnum");
 function updateResultPageBrief() {
   quizBriefSurah.innerHTML = `Surah ${app.curSurah}`;
   quizBriefQuesNum.innerHTML = `${session.questions.length} questions`;
+  
+  const result = {
+    score: app.curSurah,
+    numOfQuizQues: session.questions.length,
+    time: Date.now()
+  }
+  quizResults[quizResults.length] = result
+  storeDataToLocalStorage('quizResults', quizResults)
 }
 
 function calcResult() {
@@ -486,7 +488,7 @@ function counter(quizMinute) {
 }
 
 setInterval(() => {
-  storeDataToLocalStorage();
+  storeDataToLocalStorage('curSession', session);
 }, 10000);
 
 const questionReviewContainer = document.querySelector(
@@ -535,6 +537,8 @@ questionReviewContainer.addEventListener("click", (e) => {
     .classList.toggle("rotate__chevron");
 });
 
+// HELPER FUNCTIONS 
+
 function shuffleArray(arr) {
   let curIndex = arr.length;
 
@@ -545,6 +549,21 @@ function shuffleArray(arr) {
     [arr[curIndex], arr[rndIndex]] = [arr[rndIndex], arr[curIndex]];
   }
 }
+
+
+function unDisableBtns(btns) {
+  btns.forEach((btn) => (btn.disabled = false));
+}
+
+function storeDataToLocalStorage(dataName, data) {
+  localStorage.setItem(dataName, JSON.stringify(data));
+}
+
+function getDataFromLocalStorage(dataName) {
+  return JSON.parse(localStorage.getItem(dataName));
+}
+
+// KEYBOARD EVENT TO CONTROL QUIZ
 
 document.addEventListener("keydown", (e) => {
   if (e.key.toLowerCase() === "n" || e.key === "ArrowRight") {
@@ -560,6 +579,53 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-function unDisableBtns(btns) {
-  btns.forEach((btn) => (btn.disabled = false));
+
+
+let quizResults  = [
+  {}
+]
+
+window.addEventListener('load',() => {
+  quizResults = getDataFromLocalStorage('quizResults') || [];
+})
+
+
+const authBtn = document.querySelector('.auth__btn');
+
+
+
+
+async function checkLogInStatus() {
+ const session = await supabaseClient.auth.getSession()
+ console.log(session.data)
+ if(session.data.session){
+  authBtn.innerHTML = 'Logout';
+ }
 }
+
+checkLogInStatus()
+
+async function signOut() {
+const session1 = await supabaseClient.auth.getSession();
+console.log(session1);
+ await supabaseClient.auth.signOut();
+ const session = await supabaseClient.auth.getSession();
+ console.log(session);
+ 
+  
+ 
+}
+
+authBtn.addEventListener('click', (e)=>{
+  if (e.target.closest('h4').querySelector('a').innerHTML !== 'Logout') return
+  e.preventDefault()
+  
+ 
+  signOut()
+  supabaseClient.auth.onAuthStateChange((e, session) => {
+    console.log(e)
+if (e ==='SIGNED_OUT') {
+    authBtn.innerHTML = 'Login / Signin';
+  }
+ })
+})
