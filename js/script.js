@@ -16,12 +16,45 @@ const session = {
   quesGottenCorrectly: [],
 };
 
-const form = document.querySelector("form");
-
 let answerPickedByUser;
 let answerDivPickedByUser;
 
+const form = document.querySelector("form");
+const selectForm = document.querySelector(".selectForm");
+
+const surahSelectOptions = document.querySelector("#surahs__options");
+const numOfQuestionSelectOptions = document.querySelector("#NumberOfQuestions");
+const numOfQuesAnswered = document.querySelector(".num__answerd");
+const totalQuestionNum = document.querySelector(".total__ques");
+const progressBar = document.querySelector(".progress__bar");
+const correctCount = document.querySelector(".correct__count");
+const wrongCount = document.querySelector(".wrong__count");
+const quizBriefSurah = document.querySelector(".quiz__brief__surah");
+const quizBriefQuesNum = document.querySelector(".quiz__brief__questnum");
+const quesTion = document.querySelector(".ques__ayah");
+const timeDur = document.querySelector(".dur_min");
+const minLabel = document.querySelector(".min__label");
+const secLabel = document.querySelector(".sec__label");
+
+const prevBtn = document.querySelector(".prev__ques__btn");
+const nextBtn = document.querySelector(".next__ques__btn");
+const submitBtn = document.querySelector(".submit__btn");
+const restartBtn = document.querySelector(".restart__btn");
+const newQuizBtn = document.querySelector(".new__quiz__btn");
+const authBtn = document.querySelector('.auth__btn');
+
+const quizNavigator = document.querySelector(".navigator");
 const errorText = document.querySelector(".error__text");
+
+const startPage = document.querySelector(".start__page");
+const quizPage = document.querySelector(".quiz__page");
+const resultPage = document.querySelector(".result__page");
+const gradeSummary = document.querySelector(".grade__summary");
+const questionOptionsContainer = document.querySelector(".options");
+const questionReviewContainer = document.querySelector(".question__review__container");
+
+//MODEL - HTTPS LIBRARY 
+
 async function allTheSurahs() {
   try {
     let data = await fetch(
@@ -77,15 +110,213 @@ function renderSpimner(parentEl) {
   parentEl.insertAdjacentHTML("afterbegin", markup);
 }
 
+
+
+
+
 function rndNumber(max, min = 1) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
-// SOLUTION FOR SETTING QUESTION
-// 1. GET all the number possible questions from the array of all ayahs
-// 2. check if all the possible question matches the number of questions given
-// 3. Shuffle the array of ayahs
-// 4. slice from the ayah array, beginning from 0 and stopping at the number of possible questions
+
+
+
+function addAllSurahToSelectOption(allSurahs) {
+  allSurahs.forEach((surah) => {
+    const html = `<option value="${surah}">${surah}</option>`;
+    surahSelectOptions.insertAdjacentHTML("beforeend", html);
+  });
+}
+
+
+
+// BUSINESS LOGIC
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  form.querySelector("button").disabled = true;
+
+  startPage.classList.add("hidden");
+  quizPage.classList.remove("hidden");
+
+  document.querySelector(".quiz__tittle").innerHTML =
+    `Surah ${surahSelectOptions.value}`;
+  numOfQuestionsSelected = +numOfQuestionSelectOptions.value;
+
+  app.curSurah = surahSelectOptions.value;
+  session.quizDuration = timeDur.innerHTML;
+
+  let indexOfSurah = app.allSurahs.findIndex((s) => s === app.curSurah) + 1;
+  getQuranFromAPI(indexOfSurah);
+  storeDataToLocalStorage();
+});
+
+function startQuiz() {
+  render(CurNum - 1);
+  session.start = true;
+  unDisableBtns([submitBtn, nextBtn, prevBtn]);
+  counter(session.quizDuration);
+  updateProgress();
+}
+
+
+
+function submitQuiz() {
+  updateScore();
+  session.end = true;
+  storeDataToLocalStorage();
+  quizPage.classList.add("hidden");
+  resultPage.classList.remove("hidden");
+  calcResult();
+  updateResultPageBrief();
+  addQuestionReview(session.correctAnswers);
+}
+
+function PrevQuestion() {
+  if (CurNum === 1) return;
+  if (CurNum === 2) prevBtn.classList.add("btn__disabled");
+  nextBtn.classList.remove("btn__disabled");
+  CurNum--;
+  questionOptionsContainer.innerHTML = "";
+
+  updateProgress(CurNum);
+  render(CurNum - 1);
+  displayNavBtn();
+  storeDataToLocalStorage();
+
+  const alreadyPickedAnswer = session.userAnswers[CurNum - 1];
+
+  if (!alreadyPickedAnswer) return;
+
+  addIndicatorToAnswerdQues(alreadyPickedAnswer);
+}
+
+function NextQuestion() {
+  // if (!alreadyPickedAnswer) {
+  if (CurNum === +session.questions.length) return;
+  if (CurNum === +session.questions.length - 1)
+    nextBtn.classList.add("btn__disabled");
+  answerPickedByUser = "";
+  answerDivPickedByUser = "";
+  updateScore();
+  CurNum++;
+  prevBtn.classList.remove("btn__disabled");
+  updateProgress(CurNum);
+  questionOptionsContainer.innerHTML = "";
+  render(CurNum - 1);
+  displayNavBtn();
+  storeDataToLocalStorage('curSession', session);
+  storeDataToLocalStorage('appData', app);
+  // }
+
+  const alreadyPickedAnswer = session.userAnswers[CurNum - 1];
+
+  if (!alreadyPickedAnswer) return;
+
+  addIndicatorToAnswerdQues(alreadyPickedAnswer);
+}
+
+function updateProgress(curQuesNum = 1) {
+  numOfQuesAnswered.innerHTML = curQuesNum;
+  const totalQues = +session.totalQuestionsNum;
+  let progressPercentage = (curQuesNum / totalQues) * 100;
+  progressBar.style.width = `${progressPercentage}%`;
+}
+
+function updateScore() {
+  session.score = getAnswerGotten();
+}
+
+function updateResultPageBrief() {
+  quizBriefSurah.innerHTML = `Surah ${app.curSurah}`;
+  quizBriefQuesNum.innerHTML = `${session.questions.length} questions`;
+  
+  const result = {
+    score: app.curSurah,
+    numOfQuizQues: session.questions.length,
+    time: Date.now()
+  }
+  quizResults[quizResults.length] = result
+  storeDataToLocalStorage('quizResults', quizResults)
+}
+
+function calcResult() {
+  correctCount.innerHTML = session.ansGottenCorrectly.length;
+  wrongCount.innerHTML = session.questions.length - correctCount.innerHTML;
+  
+  const percentCount = document.querySelector(".percent__count");
+  let resultPercent = Math.round(
+    (session.score / session.questions.length) * 100,
+  );
+  percentCount.innerHTML = `${resultPercent}%`;
+  const quizSummaryCont = document.querySelector(".quiz__summary");
+  switch (session.end) {
+    case resultPercent >= 70:
+      gradeSummary.innerHTML = "Excellent";
+      break;
+    case resultPercent <= 70 && resultPercent >= 50:
+      gradeSummary.innerHTML = "Fair";
+      quizSummaryCont.classList.add("fair__background");
+      break;
+      
+    case resultPercent >= 30 && resultPercent <= 50:
+      gradeSummary.innerHTML = "Poor";
+      quizSummaryCont.classList.add("poor__background");
+      
+      break;
+      
+    case resultPercent >= 0 && resultPercent <= 30:
+      gradeSummary.innerHTML = "Very Poor";
+      quizSummaryCont.classList.add("poor__background");
+      
+      break;
+  }
+}
+
+
+// APPLICATION LOGIC
+
+
+quizNavigator.addEventListener("click", (e) => {
+  if (
+    e.target.classList.contains("next__ques__btn") ||
+    e.target.classList.contains("uil-arrow-right")
+  ) {
+    if (!answerDivPickedByUser && session.userAnswers[CurNum - 1] === null) {
+      session.userAnswers[CurNum - 1] = null;
+    }
+    NextQuestion();
+  }
+
+  if (
+    e.target.classList.contains("prev__ques__btn") ||
+    e.target.classList.contains("uil-arrow-left")
+  )
+    PrevQuestion();
+});
+
+submitBtn.addEventListener("click", () => {
+  if (!answerDivPickedByUser && session.userAnswers[CurNum - 1] === null) {
+    session.userAnswers[CurNum - 1] = null;
+  }
+  submitQuiz();
+});
+
+function displayNavBtn() {
+  if (CurNum > 1 && CurNum < +session.questions.length) {
+    prevBtn.classList.remove("invisible");
+    nextBtn.classList.remove("hidden");
+  }
+}
+
+
+function addIndicatorToAnswerdQues(answer) {
+  questionOptionsContainer.childNodes.forEach((opt) => {
+    if (opt.querySelector("span").innerHTML === answer) {
+      addCorrectIndicator(opt);
+    }
+  });
+}
 
 function setRandomQuestions(numOfQues) {
   let questiions = [];
@@ -143,15 +374,13 @@ function setOptions(quesNum) {
   session.questions[quesNum].opt = options;
 }
 
-const quesTion = document.querySelector(".ques__ayah");
-
 function renderQuestion(curQuesNum) {
   if (!session.questions[curQuesNum]) return;
   let curQues = session.questions[curQuesNum].q;
   quesTion.innerHTML = curQues;
 }
 
-const questionOptionsContainer = document.querySelector(".options");
+
 
 questionOptionsContainer.addEventListener("click", (e) => {
   if (e.target.classList.contains("option__div") || e.target.matches("span")) {
@@ -177,166 +406,6 @@ function render(curQuesNum) {
   questionOptionsContainer.innerHTML = "";
   renderQuestion(curQuesNum);
   renderOptions(curQuesNum);
-}
-
-const selectForm = document.querySelector(".selectForm");
-const surahSelectOptions = document.querySelector("#surahs__options");
-const numOfQuestionSelectOptions = document.querySelector("#NumberOfQuestions");
-
-function addAllSurahToSelectOption(allSurahs) {
-  allSurahs.forEach((surah) => {
-    const html = `<option value="${surah}">${surah}</option>`;
-    surahSelectOptions.insertAdjacentHTML("beforeend", html);
-  });
-}
-
-const startPage = document.querySelector(".start__page");
-const quizPage = document.querySelector(".quiz__page");
-
-// QUIZ START
-
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  form.querySelector("button").disabled = true;
-
-  startPage.classList.add("hidden");
-  quizPage.classList.remove("hidden");
-
-  document.querySelector(".quiz__tittle").innerHTML =
-    `Surah ${surahSelectOptions.value}`;
-  numOfQuestionsSelected = +numOfQuestionSelectOptions.value;
-
-  app.curSurah = surahSelectOptions.value;
-  session.quizDuration = timeDur.innerHTML;
-
-  let indexOfSurah = app.allSurahs.findIndex((s) => s === app.curSurah) + 1;
-  getQuranFromAPI(indexOfSurah);
-  storeDataToLocalStorage();
-});
-
-function startQuiz() {
-  render(CurNum - 1);
-  session.start = true;
-  unDisableBtns([submitBtn, nextBtn, prevBtn]);
-  counter(session.quizDuration);
-  updateProgress();
-}
-
-const numOfQuesAnswered = document.querySelector(".num__answerd");
-const totalQuestionNum = document.querySelector(".total__ques");
-const progressBar = document.querySelector(".progress__bar");
-
-function updateProgress(curQuesNum = 1) {
-  numOfQuesAnswered.innerHTML = curQuesNum;
-  const totalQues = +session.totalQuestionsNum;
-  let progressPercentage = (curQuesNum / totalQues) * 100;
-  progressBar.style.width = `${progressPercentage}%`;
-}
-
-const quizNavigator = document.querySelector(".navigator");
-
-quizNavigator.addEventListener("click", (e) => {
-  if (
-    e.target.classList.contains("next__ques__btn") ||
-    e.target.classList.contains("uil-arrow-right")
-  ) {
-    if (!answerDivPickedByUser && session.userAnswers[CurNum - 1] === null) {
-      session.userAnswers[CurNum - 1] = null;
-    }
-    NextQuestion();
-  }
-
-  if (
-    e.target.classList.contains("prev__ques__btn") ||
-    e.target.classList.contains("uil-arrow-left")
-  )
-    PrevQuestion();
-});
-
-const prevBtn = document.querySelector(".prev__ques__btn");
-const nextBtn = document.querySelector(".next__ques__btn");
-const submitBtn = document.querySelector(".submit__btn");
-
-submitBtn.addEventListener("click", () => {
-  if (!answerDivPickedByUser && session.userAnswers[CurNum - 1] === null) {
-    session.userAnswers[CurNum - 1] = null;
-  }
-  submitQuiz();
-});
-
-function displayNavBtn() {
-  if (CurNum > 1 && CurNum < +session.questions.length) {
-    prevBtn.classList.remove("invisible");
-    nextBtn.classList.remove("hidden");
-  }
-}
-
-const resultPage = document.querySelector(".result__page");
-const gradeSummary = document.querySelector(".grade__summary");
-
-function submitQuiz() {
-  updateScore();
-  session.end = true;
-  storeDataToLocalStorage();
-  quizPage.classList.add("hidden");
-  resultPage.classList.remove("hidden");
-  calcResult();
-  updateResultPageBrief();
-  addQuestionReview(session.correctAnswers);
-  
-  
-}
-
-function PrevQuestion() {
-  if (CurNum === 1) return;
-  if (CurNum === 2) prevBtn.classList.add("btn__disabled");
-  nextBtn.classList.remove("btn__disabled");
-  CurNum--;
-  questionOptionsContainer.innerHTML = "";
-
-  updateProgress(CurNum);
-  render(CurNum - 1);
-  displayNavBtn();
-  storeDataToLocalStorage();
-
-  const alreadyPickedAnswer = session.userAnswers[CurNum - 1];
-
-  if (!alreadyPickedAnswer) return;
-
-  addIndicatorToAnswerdQues(alreadyPickedAnswer);
-}
-
-function NextQuestion() {
-  // if (!alreadyPickedAnswer) {
-  if (CurNum === +session.questions.length) return;
-  if (CurNum === +session.questions.length - 1)
-    nextBtn.classList.add("btn__disabled");
-  answerPickedByUser = "";
-  answerDivPickedByUser = "";
-  updateScore();
-  CurNum++;
-  prevBtn.classList.remove("btn__disabled");
-  updateProgress(CurNum);
-  questionOptionsContainer.innerHTML = "";
-  render(CurNum - 1);
-  displayNavBtn();
-  storeDataToLocalStorage('curSession', session);
-  storeDataToLocalStorage('appData', app);
-  // }
-
-  const alreadyPickedAnswer = session.userAnswers[CurNum - 1];
-
-  if (!alreadyPickedAnswer) return;
-
-  addIndicatorToAnswerdQues(alreadyPickedAnswer);
-}
-
-function addIndicatorToAnswerdQues(answer) {
-  questionOptionsContainer.childNodes.forEach((opt) => {
-    if (opt.querySelector("span").innerHTML === answer) {
-      addCorrectIndicator(opt);
-    }
-  });
 }
 
 function addCorrectIndicator(answerPickedByUser) {
@@ -366,73 +435,13 @@ function getAnswerGotten() {
   return session.ansGottenCorrectly.length;
 }
 
-function updateScore() {
-  session.score = getAnswerGotten();
-}
 
-const correctCount = document.querySelector(".correct__count");
-const wrongCount = document.querySelector(".wrong__count");
-const quizBriefSurah = document.querySelector(".quiz__brief__surah");
-const quizBriefQuesNum = document.querySelector(".quiz__brief__questnum");
-
-function updateResultPageBrief() {
-  quizBriefSurah.innerHTML = `Surah ${app.curSurah}`;
-  quizBriefQuesNum.innerHTML = `${session.questions.length} questions`;
-  
-  const result = {
-    score: app.curSurah,
-    numOfQuizQues: session.questions.length,
-    time: Date.now()
-  }
-  quizResults[quizResults.length] = result
-  storeDataToLocalStorage('quizResults', quizResults)
-}
-
-function calcResult() {
-  correctCount.innerHTML = session.ansGottenCorrectly.length;
-  wrongCount.innerHTML = session.questions.length - correctCount.innerHTML;
-
-  const percentCount = document.querySelector(".percent__count");
-  let resultPercent = Math.round(
-    (session.score / session.questions.length) * 100,
-  );
-  percentCount.innerHTML = `${resultPercent}%`;
-  const quizSummaryCont = document.querySelector(".quiz__summary");
-  switch (session.end) {
-    case resultPercent >= 70:
-      gradeSummary.innerHTML = "Excellent";
-      break;
-    case resultPercent <= 70 && resultPercent >= 50:
-      gradeSummary.innerHTML = "Fair";
-      quizSummaryCont.classList.add("fair__background");
-      break;
-
-    case resultPercent >= 30 && resultPercent <= 50:
-      gradeSummary.innerHTML = "Poor";
-      quizSummaryCont.classList.add("poor__background");
-
-      break;
-
-    case resultPercent >= 0 && resultPercent <= 30:
-      gradeSummary.innerHTML = "Very Poor";
-      quizSummaryCont.classList.add("poor__background");
-
-      break;
-  }
-}
-
-const restartBtn = document.querySelector(".restart__btn");
-const newQuizBtn = document.querySelector(".new__quiz__btn");
 
 restartBtn.addEventListener("click", () => {
-  quizPage.classList.remove("hidden");
-  resultPage.classList.add("hidden");
-  shuffleArray(session.questions);
-  questionOptions.innerHTML = "";
-  questionReviewContainer.innerHTML = "";
   CurNum = 1;
   updateProgress(CurNum);
-
+  shuffleArray(session.questions);
+  questionReviewContainer.innerHTML = "";
   render(CurNum - 1);
   counter(session.quizDuration);
   session.userAnswers = [];
@@ -440,6 +449,8 @@ restartBtn.addEventListener("click", () => {
   session.start = true;
   session.end = false;
   nextBtn.classList.remove("btn__disabled");
+  quizPage.classList.remove("hidden");
+resultPage.classList.add("hidden");
 });
 
 newQuizBtn.addEventListener("click", () => {
@@ -447,7 +458,7 @@ newQuizBtn.addEventListener("click", () => {
   addAllSurahToSelectOption(app.allSurahs);
 });
 
-const timeDur = document.querySelector(".dur_min");
+
 
 document.querySelector(".incr__dura").addEventListener("click", (e) => {
   if (+timeDur.innerHTML === 20) return;
@@ -459,8 +470,6 @@ document.querySelector(".decr__dura").addEventListener("click", (e) => {
   timeDur.innerHTML = +timeDur.innerHTML - 5;
 });
 
-const minLabel = document.querySelector(".min__label");
-const secLabel = document.querySelector(".sec__label");
 
 function counter(quizMinute) {
   let totalQuizMunite = +quizMinute;
@@ -490,10 +499,6 @@ function counter(quizMinute) {
 setInterval(() => {
   storeDataToLocalStorage('curSession', session);
 }, 10000);
-
-const questionReviewContainer = document.querySelector(
-  ".question__review__container",
-);
 
 function addQuestionReview(questions) {
   questions.forEach((ques, i) => {
@@ -587,13 +592,18 @@ let quizResults  = [
 
 window.addEventListener('load',() => {
   quizResults = getDataFromLocalStorage('quizResults') || [];
+  
+  
+  supabaseClient.auth.onAuthStateChange((e, session) => {
+    console.log(e)
+if (!session) {
+    
+    window.location.replace('/auth.html')
+    console.log(authBtn.closest('h4').querySelector('use'))
+  
+  }
+ })
 })
-
-
-const authBtn = document.querySelector('.auth__btn');
-
-
-
 
 async function checkLogInStatus() {
  const session = await supabaseClient.auth.getSession()
@@ -611,21 +621,21 @@ console.log(session1);
  await supabaseClient.auth.signOut();
  const session = await supabaseClient.auth.getSession();
  console.log(session);
- 
-  
- 
 }
 
 authBtn.addEventListener('click', (e)=>{
-  if (e.target.closest('h4').querySelector('a').innerHTML !== 'Logout') return
+  if (e.target.closest('h4').querySelector('.auth__btn').innerHTML !== 'Logout') window.location.replace('/auth.html')
+  if (e.target.closest('h4').querySelector('.auth__btn').innerHTML !== 'Logout') return
   e.preventDefault()
-  
- 
+
   signOut()
   supabaseClient.auth.onAuthStateChange((e, session) => {
     console.log(e)
 if (e ==='SIGNED_OUT') {
-    authBtn.innerHTML = 'Login / Signin';
+    authBtn.innerHTML = 'Login / SignUp';
+    window.location.replace('/auth.html')
+    console.log(authBtn.closest('h4').querySelector('use'))
+    authBtn.closest('h4').querySelector('use').href = '/images/icons.svg#icon-logout'
   }
  })
 })

@@ -129,9 +129,11 @@ nav {
     padding: .5rem 1rem;
     border-radius: 20px;
     text-decoration: none;
-    display: inline-flex;
+    display: flex;
+    
     gap: .5rem;
     align-items: center;
+    justify-content: center;
     
     a{
       color: var(--white);
@@ -795,19 +797,23 @@ box-shadow: var(--shadow-lg); */
       background: var(--green-600);
     }
     
+    .form__input:focus{
+      box-shadow: 0px 4px 8px var(--green-300);
+    }
+    
     input {
   background: none;
   width: 100%;
   border: 1px solid #286E1A;
   padding: 1rem;
-  border-radius: 3px;
+  border-radius: 5px;
 }
 
 .password__input{
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
+  border-radius: 5px;
 border: 1px solid #286E1A;
   input{
     border: none;
@@ -825,16 +831,22 @@ border: 1px solid #286E1A;
 }
 
 label{
-  display: flex;
-  gap: 2rem;
+  color: var(--green-900);
+  font-size: .825rem;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
 }
 .ask__authType{
   text-align: center;
-  font-size: 1.25rem;
-  
+
   a{
     
     color: var(--green-900);
   }
+}
+
+button:disabled{
+  opacity: .5;
 }
 }

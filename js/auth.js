@@ -54,7 +54,7 @@ function displayForm(tab) {
         <label for="">
         Full Name:
       </label>
-      <input type="text" name="fullname" id="" value="" />
+      <input class="form__input" type="text" name="fullname" id="" value="" />
       <p class="error_message"></p>
 </div>
 
@@ -62,7 +62,7 @@ function displayForm(tab) {
         <label for="">
         Email:
       </label>
-      <input type="email" name="email" id="" value="" />
+      <input class="form__input" type="email" name="email" id="" value="" />
       <p class="error_message"></p>
 </div>
       
@@ -72,7 +72,7 @@ function displayForm(tab) {
   <label for="">
     Password:
   </label>
-<div class="password__input">
+<div class="password__input form__input">
     <input type="password" name="password" id="" value="" />
 <span><svg class='show__off_password' width="14" height="14"><use href="/images/icons.svg#icon-eye-off"></use></svg>
     </span>
@@ -94,7 +94,7 @@ function displayForm(tab) {
         <label for="">
         Email:
       </label>
-      <input type="email" name="email" id="email" value="" />
+      <input class="form__input" type="email" name="email" id="email" value="" />
         <p class="error_message"></p>
 </div>
       
@@ -102,7 +102,7 @@ function displayForm(tab) {
   <label for="">
     Password:
   </label>
-<div class="password__input">
+<div class="password__input form__input">
     <input type="password" name="password" id="password" value="" />
 <span><svg width="14" height="14"><use href="/images/icons.svg#icon-eye-off"></use></svg>
     </span>
@@ -123,6 +123,8 @@ function displayForm(tab) {
 }
 
 
+// HELPER FUNCTIONS 
+
 function  validateInput(input) {
   if (input.value === '') {
     input.closest('.input__div').querySelector('.error_message').innerHTML = 'Input is required'
@@ -138,6 +140,13 @@ function checkallInputField(...inputArr) {
   return inputArr.every(i => i.value !== '')
 }
 
+function addSpinner(parentEl) {
+  const markup = `<svg width="10px" height="10px" class="spinner">
+        <use href="./images/icons.svg#icon-spinner" ></use>
+      </svg>
+      `;
+  parentEl.innerHTML += markup;
+}
 
 
 allInput.forEach(
@@ -192,14 +201,16 @@ async function createNewAccount(inputArr) {
       options: {data : {userName}}
   }
       
-  ) 
+  )
   
-  if(data.user){
-    alert('account created')
+  console.log(data, error, 'Accoutt Skksmsmsmsm')
+  
+  if(data.user && !data.session){
+    // alertUI.innerHTML = ''
   }
   
   if(error) {
-    alert('Error ❗❗❗❗❗')
+    loginError.innerHTML = error.message
     throw error
   }
   
@@ -229,7 +240,7 @@ console.log(emailInput, passwordInput)
   
   console.log(data, error)
   if(error){
-    loginError.innerHTML = error.code
+    loginError.innerHTML = error.message
   }
   
   if(!data.user) return true;
@@ -243,12 +254,15 @@ formContainer.addEventListener('input', (e)=>{
   allInput.forEach(i => validateInput(i))
 })
 
-
+// SUBMIT FORM
 formContainer.addEventListener('submit', (e) => {
   e.preventDefault()
  allInput.forEach(i => validateInput(i))
  
  if (checkallInputField(...allInput)) {
+   const formBtn =formContainer.querySelector('button')
+   formBtn.disabled = true;
+   addSpinner(formBtn)
     if(currentTab === 'signup'){
       const ok = createNewAccount(allInput)
       if(ok){
@@ -326,28 +340,6 @@ showPass(show)
 
 )
 
-
-
-
-
-async function signUp(email, password, name) {
-  const { data, error } = await supabase2.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { name } // stored as user metadata
-    }
-  });
-  if (error) throw error;
-  return data;
-}
-
-async function login(email, password) {
-  const { data, error } = await supabase2.auth.signInWithPassword({ email, password });
-  if (error) throw error;
-  return data; // includes session + JWT
-}
-
 // Get current logged-in user
 // const { data: { user } } = await supabase2.auth.getUser();
 
@@ -365,10 +357,12 @@ function LogUserInToQuiz() {
 
 
 supabaseClient.auth.onAuthStateChange((event, session) => {
-  // console.log(event, session);
+  console.log(event, session);
   if(event === 'SIGNED_IN') {
     LogUserInToQuiz()
     isLoggedIn = true;
   }
 });
+
+
 
