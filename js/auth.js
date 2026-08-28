@@ -1,7 +1,4 @@
 //Login Page
-
-
-
 let currentTab = 'login'
 
 const formContainer= document.querySelector('.auth__form')
