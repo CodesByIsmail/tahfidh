@@ -201,7 +201,7 @@ async function createNewAccount(inputArr) {
   )
   
   console.log(data, error, 'Accoutt Skksmsmsmsm')
-  
+  alert(data.user)
   if(data.user && !data.session){
     // alertUI.innerHTML = ''
   }
