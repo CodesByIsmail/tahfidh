@@ -128,7 +128,22 @@ function addAllSurahToSelectOption(allSurahs) {
   });
 }
 
+function changeTheme(isDark) {
+  console.log(isDark)
+let theme = isDark ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', theme )
+}
 
+const themeInput = document.querySelector('.themeInput');
+const box = document.querySelector('.box');
+let isDark = false;
+
+themeInput.addEventListener('input', ()=>{
+  
+  box.classList.toggle('shift')
+  isDark= !isDark;
+  changeTheme(isDark)
+})
 
 // BUSINESS LOGIC
 
@@ -170,6 +185,8 @@ function submitQuiz() {
   calcResult();
   updateResultPageBrief();
   addQuestionReview(session.correctAnswers);
+  showNotification(app.curSurah, session.score, session.questions.length);
+
 }
 
 function PrevQuestion() {
@@ -594,15 +611,15 @@ window.addEventListener('load',() => {
   quizResults = getDataFromLocalStorage('quizResults') || [];
   
   
-  supabaseClient.auth.onAuthStateChange((e, session) => {
-    console.log(e)
-if (!session) {
+//   supabaseClient.auth.onAuthStateChange((e, session) => {
+//     console.log(e)
+// if (!session) {
     
-    window.location.replace('/auth.html')
-    console.log(authBtn.closest('h4').querySelector('use'))
+//     window.location.replace('/auth.html')
+//     console.log(authBtn.closest('h4').querySelector('use'))
   
-  }
- })
+//   }
+// })
 })
 
 async function checkLogInStatus() {
@@ -639,3 +656,36 @@ if (e ==='SIGNED_OUT') {
   }
  })
 })
+
+
+// if ("serviceWorker" in navigator) {
+//   navigator.serviceWorker.register("/js/sw.js");
+// }
+
+async function showNotification(surah, score, totalQues) {
+  try {
+    if (!('Notification' in window)) {
+      alert("This browser doesn't support notifications");
+      throw new Error('Notification not available');
+      return
+    }
+    
+    const permission = await Notification.requestPermission();
+    
+    if (permission === 'granted') {
+      const notification = new Notification('Quiz Completed', {
+        body: `Congratulations, you have just completed a quiz of: ${surah}, Your score is: ${score}/${totalQues}`,
+        icon: '/images/book-open.svg', 
+        tag: 'quiz-completion'
+      })
+    }
+    
+    if (permission === 'denied') throw new Error('Notification not allowed')
+  } catch (e) {
+    alert(e.message)
+  }
+}
+
+// window.addEventListener('load', ()=>{
+//   document.documentElement.setAttribute('data-theme', 'dark')
+// })

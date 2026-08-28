@@ -2,6 +2,12 @@
 @import url("https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap");
 
+@font-face {
+  font-family: hafs-arabic;
+  src: url(/fonts/Janna-LT-Bold.ttf);
+}
+
+
 :root {
   --green-900: #064e3b;
   --green-800: #065f46;
@@ -37,16 +43,40 @@
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.2);
 
   --font-body: "Google Sans", sans-serif;
-  --font-arabic: "Noto Sans Arabic", sans-serif;
-  --font-arabic-2: "Alyamama", serif;
+  /* --font-arabic: "Noto Sans Arabic", sans-serif; */
+   --font-arabic-2: hafs-arabic;
+  /* --font-arabic-2: "Alyamama", serif; */
 
   --transition: 0.5s;
   --bg-gradient: linear-gradient(to left, var(--green-900), var(--green-300));
   --gradient: linear-gradient(to left, var(--green-900), var(--green-600));
 }
 
+
+[data-theme="dark"] {
+  /* Grays (Inverted for Dark Theme) */
+  --gray-800: #f9fafb; /* Primary Text */
+  --gray-600: #e5e7eb; /* Secondary Text */
+  --gray-400: #9ca3af; /* Muted Text / Borders */
+  --gray-200: #374151; /* Borders / Dividers */
+  --gray-100: #1f2937; /* Card / Surface BG */
+  --gray-50:  #111827; /* Main Background */
+  --white:    #0f172a; /* Base Dark Canvas */
+
+  /* Shadows (Adjusted for Dark Surfaces) */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
+
+  /* Optional: Softened Accents for reduced eye strain */
+  --green-900: #10b981; 
+  --green-300: #047857; 
+  --bg-gradient: linear-gradient(to left, var(--green-300), var(--green-900));
+}
+
+
 @font-face {
-  font-family: "hafssmart8";
+  font-family: "hafs-arabic";
   src:
     url("https://cdn.jsdelivr.net/gh/thetruetruth/quran-data-kfgqpc@main/hafs-smart/font/hafssmart.8.woff2")
       format("woff2"),
@@ -93,11 +123,49 @@ main {
   padding: 0 0 2rem;
 }
 
+.toggleTheme{
+  background: var(--green-800);
+  box-shadow: 0px 0px 8px var(--box-shadow1);
+  border-radius: 15px;
+  border: none;
+  display: flex;
+  padding: .2rem;
+  position: absolute;
+  top: 10%;
+  left: 5%;
+  .box{
+    height: 100%;
+    width: 1rem;
+    background: var(--gray-100);
+border-radius: 50%;
+padding: .5rem;
+    transition: 500ms;
+    box-shadow: 0px 0px 5px #000000;
+  }
+  
+  
+  
+  input{
+    opacity: 0;
+    z-index: 100;
+    width: 100%;
+  }
+  
+
+    
+      .box.shift{
+    transform: translateX(100%);
+  }
+  
+
+}
+
 nav {
   background: var(--white);
   height: 4rem;
   position: sticky;
   top: 0;
+  z-index: 100;
 }
 
 .nav__bar {
@@ -163,7 +231,7 @@ nav {
   padding: 0.7rem 1rem;
   border-radius: var(--radius-md);
   border: none;
-  background: var(--green-500);
+  background: var(--green-900);
   color: var(--white);
   transition: var(--transition);
   display: flex;
@@ -172,9 +240,10 @@ nav {
   gap: 0.2rem;
 }
 
-.btn:hover {
+.btn:active {
   box-shadow: var(--shadow-lg);
   background: var(--green-800);
+  transform: translateY(2px) scale(0.95);
 }
 
 .btn:focus {
@@ -345,7 +414,7 @@ width: 20rem;
   padding: 0.8rem;
   border-radius: var(--radius-md);
   /* font-family: "Alyamama", serif; */
-  font-family: hafssmart8;
+  font-family: hafs-arabic;
 word-spacing: .1rem;
   background: var(--green-100);
 }
@@ -355,14 +424,17 @@ word-spacing: .1rem;
   flex-direction: column;
   gap: 1rem;
   width: 100%;
+  color: var(--gray-800);
 
   /* font-family: var(--font-arabic); */
-    font-family: hafssmart8;
+    font-family: hafs-arabic;
 
 }
 
 .options .option__div {
-  /* background: var(--gray-200); */
+  background: var(--green-50);
+  
+  color: var(--gray-800);
   width: 100%;
   padding: 0.8rem 0.3rem;
   color: var(--green-900);
@@ -381,10 +453,10 @@ word-spacing: .1rem;
   transition: var(--transition);
 }
 
-.answer__picked__indicator {
-  /* background: var(--green-300); */
+.options .answer__picked__indicator {
+  background: var(--green-300);
   border: 2px solid var(--green-300);
-
+color: var(--gray-50);
   box-shadow: var(--shadow-md);
   transform: scale(1.02);
 }
@@ -631,7 +703,8 @@ box-shadow: var(--shadow-lg); */
 }
 
 .question__review__container {
-  background: var(--white);
+  background: var(--gray-50);
+  color: var(--gray-800);
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -640,7 +713,8 @@ box-shadow: var(--shadow-lg); */
 
   .question__review {
     padding: 1rem;
-    background: var(--white);
+    background: var(--gray-800);
+    color: var(--gray-50);
     box-shadow: var(--shadow-lg);
   }
 
@@ -687,7 +761,7 @@ box-shadow: var(--shadow-lg); */
 .question,
 .answer {
   /* font-family: var(--font-arabic); */
-  font-family: hafssmart8;
+  font-family: hafs-arabic;
 }
 
 .review__wrapper {
